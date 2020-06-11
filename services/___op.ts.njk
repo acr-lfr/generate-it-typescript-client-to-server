@@ -13,7 +13,7 @@ export default class {{ucFirst(operation_name)}}Service {
    *  Summary: {{ path.summary }}
    *  Description: {{ path.description }}
    */
-  public static {{ path.operationId }} ({{ pathParamsToDomainParams(method, path, true) }} additionalHeaders?: object): Promise<{{ path['x-response-definitions']['200'] if path['x-response-definitions']['200'] else 'any' }}>{
+  public static {{ path.operationId }} ({{ pathParamsToDomainParams(method, path, true) }} additionalHeaders?: object): Promise<{{ path['x-response-definitions']['200'] if path['x-response-definitions']['200'] else 'void' }}>{
     return HttpService.sendRequest({
       method: '{{ method | upper}}',
       path: '{{ urlPathJoin(op.path_name)}}',
