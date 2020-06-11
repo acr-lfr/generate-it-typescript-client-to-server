@@ -1,5 +1,5 @@
 {
-  "nodegenDir": "generated",
-  "nodegenMockDir": "generated/__mocks__",
+  "nodegenDir": "services",
+  "nodegenMockDir": "services/__mocks__",
   "nodegenType": "client"
 }
