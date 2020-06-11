@@ -1,0 +1,4 @@
+export enum HttpMethodEnum { {% for method in validMethods() %}
+  {{ method }} = '{{ method }}',
+{%- endfor %}
+}

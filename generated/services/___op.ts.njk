@@ -1,0 +1,33 @@
+import HttpService from '../../lib/HttpService';
+import { HttpMethodEnum } from '../enums/HttpMethodEnum'
+{% set interfaces = importInterfaces(operations) %}
+{% for interface in interfaces -%}
+import { {{ interface }} } from '../interfaces/{{ interface }}';
+{%- endfor %}
+
+class {{ucFirst(operation_name)}}Service extends HttpService {
+{% for op in operations -%}
+  {% for method, path in op.path -%}
+    {% if isValidMethod(method)%}
+  // {{ path.operationId }}
+  public {{ path.operationId }} ({{ pathParamsToDomainParams(method, path, true) }} additionalHeaders?: object): Promise<{{ path['x-response-definitions']['200'] if path['x-response-definitions']['200'] else 'any' }}>{
+    return this.sendRequest({
+      method: HttpMethodEnum.{{ method | upper}},
+      path: '{{ urlPathJoin(op.path_name)}}',
+      {% if not path['x-request-definitions'].headers %}headers: additionalHeaders || {},{% endif %}
+      {% for requestType, value in path['x-request-definitions'] -%}
+        {% if requestType === 'path' %}params: pathParams,
+        {% elif requestType === 'query' %}qs: {{ requestType }},
+        {% elif requestType === 'formData' %}formData: files,
+        {% elif requestType === 'headers' %}headers: Object.assign(headers, additionalHeaders || {}),
+        {% else %}{{ requestType }},
+        {% endif %}
+      {%- endfor %}
+    })
+  }
+    {% endif %}
+  {%- endfor %}
+{%- endfor %}
+}
+
+export default new {{ucFirst(operation_name)}}Service();
