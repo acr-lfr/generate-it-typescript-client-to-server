@@ -30,7 +30,7 @@ export default class HttpService {
    * Make the http requestPromise
    * @param {RequestObject} requestObject
    */
-  public static async sendRequest (requestObject: RequestObject): Promise<AxiosResponse> {
+  public static async sendRequest (requestObject: RequestObject): Promise<any> {
     const URL = config.api.baseUrl + HttpService.injectParamsToPath(requestObject.params, requestObject.path);
     return new Promise((resolve, reject) => {
       axios({
