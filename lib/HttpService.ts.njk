@@ -1,7 +1,19 @@
-import axios from 'axios';
-import { RequestObject } from '../services/interfaces/RequestObject';
+import axios, { AxiosError, AxiosResponse, Method } from 'axios';
+import config from '@/config';
+
+export interface RequestObject {
+  method: string
+  path: string
+  formData?: object
+  params?: object
+  qs?: object
+  body?: object
+  headers?: object
+}
 
 export default class HttpService {
+  public static headers = {};
+
   /**
    * Injects the values into a path
    * @param {Object} params
@@ -18,14 +30,23 @@ export default class HttpService {
    * Make the http requestPromise
    * @param {RequestObject} requestObject
    */
-  public static async sendRequest (requestObject: RequestObject): Promise<any> {
-    const URL = 'http://localhost' + HttpService.injectParamsToPath(requestObject.params, requestObject.path);
-    return axios({
-      headers: requestObject.headers,
-      method: requestObject.method,
-      data: requestObject.formData || requestObject.body || {},
-      params: requestObject.qs || {},
-      url: URL,
+  public static async sendRequest (requestObject: RequestObject): Promise<AxiosResponse> {
+    const URL = config.api.baseUrl + HttpService.injectParamsToPath(requestObject.params, requestObject.path);
+    return new Promise((resolve, reject) => {
+      axios({
+        headers: {
+          ...requestObject.headers || {},
+          ...HttpService.headers
+        },
+        method: requestObject.method as unknown as Method,
+        data: requestObject.formData || requestObject.body || {},
+        params: requestObject.qs || {},
+        url: URL,
+      }).then((response: AxiosResponse) => {
+        resolve(response.data);
+      }).catch((err: AxiosError) => {
+        reject(err);
+      });
     });
   }
 }
