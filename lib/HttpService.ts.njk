@@ -2,6 +2,7 @@ import axios from 'axios';
 import { RequestObject } from '../services/interfaces/RequestObject';
 
 export default class HttpService {
+  public baseUrl: string = 'change me';
   /**
    * Injects the values into a path
    * @param {Object} params
@@ -19,7 +20,7 @@ export default class HttpService {
    * @param {RequestObject} requestObject
    */
   public async sendRequest (requestObject: RequestObject): Promise<any> {
-    const URL = config.baseUrl + HttpService.injectParamsToPath(requestObject.params, requestObject.path);
+    const URL = this.baseUrl + HttpService.injectParamsToPath(requestObject.params, requestObject.path);
     return axios({
       headers: requestObject.headers,
       method: requestObject.method,
