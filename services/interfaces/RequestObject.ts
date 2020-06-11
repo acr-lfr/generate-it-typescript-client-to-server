@@ -1,7 +1,5 @@
-import {HttpMethodEnum} from '../enums/HttpMethodEnum'
-
 export interface RequestObject {
-  method: HttpMethodEnum
+  method: string
   path: string
   formData?: object
   params?: object
