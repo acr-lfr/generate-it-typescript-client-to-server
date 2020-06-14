@@ -5,6 +5,7 @@ import { {{ interface }} } from './interfaces/{{ interface }}';
 {%- endfor %}
 
 export default class {{ucFirst(operation_name)}}Service {
+  public static basePath = '{{ basePath if basePath else "/" }}'
 {% for op in operations -%}
   {% for method, path in op.path -%}
     {% if isValidMethod(method)%}
@@ -13,10 +14,10 @@ export default class {{ucFirst(operation_name)}}Service {
    *  Summary: {{ path.summary }}
    *  Description: {{ path.description }}
    */
-  public static {{ path.operationId }} ({{ pathParamsToDomainParams(method, path, true) }} additionalHeaders?: object): Promise<{{ path['x-response-definitions']['200'] if path['x-response-definitions']['200'] else 'void' }}>{
+  public static {{ path.operationId }} ({{ pathParamsToDomainParams(method, path, true) }}): Promise<{{ path['x-response-definitions']['200'] if path['x-response-definitions']['200'] else 'void' }}>{
     return HttpService.sendRequest({
       method: '{{ method | upper}}',
-      path: '{{ urlPathJoin(op.path_name)}}',
+      path: {{ucFirst(operation_name)}}Service.basePath + '{{ urlPathJoin(op.path_name)}}',
       {% if not path['x-request-definitions'].headers %}headers: additionalHeaders || {},{% endif %}
       {% for requestType, value in path['x-request-definitions'] -%}
         {% if requestType === 'path' %}params: pathParams,
