@@ -18,7 +18,6 @@ export default class {{ucFirst(operation_name)}}Service {
     return HttpService.sendRequest({
       method: '{{ method | upper}}',
       path: {{ucFirst(operation_name)}}Service.basePath + '{{ urlPathJoin(op.path_name)}}',
-      {% if not path['x-request-definitions'].headers %}headers: additionalHeaders || {},{% endif %}
       {% for requestType, value in path['x-request-definitions'] -%}
         {% if requestType === 'path' %}params: pathParams,
         {% elif requestType === 'query' %}qs: {{ requestType }},
