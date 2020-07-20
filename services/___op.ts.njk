@@ -26,6 +26,7 @@ export default class {{ucFirst(operation_name)}}Service {
         {% else %}{{ requestType }},
         {% endif %}
       {%- endfor %}
+      {% if baseUrl %}baseUrl: {{ baseUrl }},
     })
   }
     {% endif %}
