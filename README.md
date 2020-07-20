@@ -29,22 +29,63 @@ generate-it ../ms_item_d/build/ms-item-d_1.0.0.yml -t https://github.com/acrontu
 ```
 
 ## Example multiclient generation script
+The script will build a series of API clients using these templates (defaulting to axios).
+
+The script will also depend on an npm package `command-line-args` to parse the cli arguments allowing to control which clients point to a specific URL and which default to the base url in the http service.
+
+For example:
+Prod build
+```
+node buildApi.js
+```
+Override the channel api url:
+```
+node buildApi.js --local ms-channel
+```
+
+the script:
 ```javascript
-// relative paths to the script caller (from and to)
 const config = [
   {
     from: '../../backend/ms_authentication_d/build/ms-authentication-d_1.0.1.yml',
     to: 'src/api/ms-authentication'
   },
   {
+    from: '../../backend/ms_image_server_cache_d/build/ms_image_server_cache_d_1.0.0.yml',
+    to: 'src/api/ms-image-server-cache'
+  },
+  {
     from: '../../backend/ms_item_d/build/ms-item-d_1.0.0.yml',
     to: 'src/api/ms-item'
   },
+  {
+    from: '../../backend/ms_channel_d/build/ms-channel-d_1.0.0.yml',
+    to: 'src/api/ms-channel',
+  },
 ]
+
+const commandLineArgs = require('command-line-args')
+const options = commandLineArgs([{ name: 'local', type: String }])
+if (options.local) {
+  config.forEach((conf, i) => {
+    if (conf.to.includes(options.local)) {
+      config[i].variables = {
+        basePath: '/',
+        baseUrl: 'http://localhost:8000'
+      }
+    } else {
+      config[i].variables = {}
+    }
+  })
+}
+
+// eslint-disable-next-line no-undef
 const generateIt = require('generate-it/build/generateIt').default
+// eslint-disable-next-line no-undef
+require('colors')
 const generate = (configArray) => {
   if (configArray.length === 0) {
-    console.log('Completed the generate of all apis.')
+    console.log('','','Completed the generate of all apis.'.blue.bold)
   } else {
     const item = configArray.shift()
     generateIt({
@@ -55,13 +96,13 @@ const generate = (configArray) => {
       swaggerFilePath: item.from,
       targetDir: item.to,
       template: 'https://github.com/acrontum/generate-it-typescript-client-to-server.git',
-      variables: {
+      variables: Object.assign({
         httpServiceImport: '@/services/HttpService',
-        basePath: '/' + item.to.split('/') + '/'
-      }
+        basePath: '/' + item.to.split('/').pop() + '/'
+      }, item.variables)
     })
       .then(() => {
-        console.log('API generated: ' + item.to)
+        console.log(`API generated: ${item.to}`.blue.bold)
         generate(configArray)
       })
       .catch((e) => {
@@ -69,5 +110,6 @@ const generate = (configArray) => {
       })
   }
 }
+
 generate(config)
 ```
