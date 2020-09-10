@@ -21,7 +21,7 @@ export default class {{ucFirst(operation_name)}}Service {
       {% for requestType, value in path['x-request-definitions'] -%}
         {% if requestType === 'path' %}params: pathParams,
         {% elif requestType === 'query' %}qs: {{ requestType }},
-        {% elif requestType === 'formData' %}formData: files,
+        {% elif requestType === 'formData' %}formData,
         {% elif requestType === 'headers' %}headers: Object.assign(headers, additionalHeaders || {}),
         {% else %}{{ requestType }},
         {% endif %}
