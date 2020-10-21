@@ -4,6 +4,18 @@ Generate-it typescript set of tpls for browser to client api client.
 
 Uses Axios by default but you can drop in another http service file to replace axios:
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Default lib:](#default-lib)
+- [Overriding the default http lib:](#overriding-the-default-http-lib)
+- [Overriding the base path](#overriding-the-base-path)
+- [Injecting input santizing from object-reduce-by-map](#injecting-input-santizing-from-object-reduce-by-map)
+- [Example multiclient generation script](#example-multiclient-generation-script)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Default lib:
 ```
   "scripts": {
@@ -26,6 +38,23 @@ By default the base path is '/'. This will likely be something else if you are u
 Override the base path example to the name of the microservice:
 ```
 generate-it ../ms_item_d/build/ms-item-d_1.0.0.yml -t https://github.com/acrontum/generate-it-typescript-client-to-server.git -$ httpServiceImport=@/services/HttpService  -$ basePath=/ms-authentication/
+```
+
+## Injecting input santizing from object-reduce-by-map
+In the .nodegenrc you can instruct the services/___op.ts.njk to run all provided input through object-by-map.
+
+This is especially helpful for quickly building up admins allowing you to throw a full record of data at say a "PATCH" route where the API allows only accept specific attributes.
+
+Just mark useObjectReduceByMap to true, but when using this option it expects you to install "object-reduce-by-map" manually.:
+```
+{
+  "nodegenDir": "services",
+  "nodegenMockDir": "services/__mocks__",
+  "nodegenType": "client",
+  "helpers": {
+    "useObjectReduceByMap": false
+  }
+}
 ```
 
 ## Example multiclient generation script

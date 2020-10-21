@@ -1,4 +1,5 @@
 import HttpService from '{{ httpServiceImport if httpServiceImport else "../lib/HttpService" }}';
+{% if nodegenRc.helpers.useObjectReduceByMap %}import objectReduceByMap from 'object-reduce-by-map';{% endif %}
 {% set interfaces = importInterfaces(operations) %}
 {% for interface in interfaces -%}
 import { {{ interface }} } from './interfaces/{{ interface }}';
@@ -15,15 +16,16 @@ export default class {{ucFirst(operation_name)}}Service {
    *  Description: {{ path.description }}
    */
   public static {{ path.operationId }} ({{ pathParamsToDomainParams(method, path, true) }}): Promise<{{ path['x-response-definitions']['200'] if path['x-response-definitions']['200'] else 'void' }}>{
+    {% if nodegenRc.helpers.useObjectReduceByMap %}const map = {{ paramsOutputReducer(path.responses)}}{% endif %}
     return HttpService.sendRequest({
       method: '{{ method | upper}}',
       path: {{ucFirst(operation_name)}}Service.basePath + '{{ urlPathJoin(op.path_name)}}',
       {% for requestType, value in path['x-request-definitions'] -%}
         {% if requestType === 'path' %}params: pathParams,
         {% elif requestType === 'query' %}qs: {{ requestType }},
-        {% elif requestType === 'formData' %}formData,
+        {% elif requestType === 'formData' %}{% if nodegenRc.helpers.useObjectReduceByMap %}objectReduceByMap(formData, map){% else %}formData{% endif %},
         {% elif requestType === 'headers' %}headers: Object.assign(headers, additionalHeaders || {}),
-        {% else %}{{ requestType }},
+        {% else %}{% if nodegenRc.helpers.useObjectReduceByMap %}{{ requestType }}: objectReduceByMap({{ requestType }}, map){% else %}{{ requestType }}{% endif %},
         {% endif %}
       {%- endfor %}
       {% if baseUrl %}baseUrl: '{{ baseUrl }}',{% endif %}
