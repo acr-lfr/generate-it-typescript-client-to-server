@@ -16,16 +16,20 @@ export default class {{ucFirst(operation_name)}}Service {
    *  Description: {{ path.description }}
    */
   public static {{ path.operationId }} ({{ pathParamsToDomainParams(method, path, true) }}): Promise<{{ path['x-response-definitions']['200'] if path['x-response-definitions']['200'] else 'void' }}>{
-    {% if nodegenRc.helpers.useObjectReduceByMap %}const map = {{ paramsOutputReducer(path.responses)}}{% endif %}
+    {% if nodegenRc.helpers.useObjectReduceByMap %}
+      {% for requestType, value in path['x-request-definitions'] -%}
+          const map{{ requestType }} = {{ _.trimEnd(paramsOutputReducer(swagger.definitions[value.name]), ',') }}
+      {% endfor %}
+    {% endif %}
     return HttpService.sendRequest({
       method: '{{ method | upper}}',
       path: {{ucFirst(operation_name)}}Service.basePath + '{{ urlPathJoin(op.path_name)}}',
       {% for requestType, value in path['x-request-definitions'] -%}
         {% if requestType === 'path' %}params: pathParams,
         {% elif requestType === 'query' %}qs: {{ requestType }},
-        {% elif requestType === 'formData' %}{% if nodegenRc.helpers.useObjectReduceByMap %}formData: objectReduceByMap(formData, map){% else %}formData{% endif %},
+        {% elif requestType === 'formData' %}{% if nodegenRc.helpers.useObjectReduceByMap %}formData: objectReduceByMap(formData, map{{ requestType }}){% else %}formData{% endif %},
         {% elif requestType === 'headers' %}headers: Object.assign(headers, additionalHeaders || {}),
-        {% else %}{% if nodegenRc.helpers.useObjectReduceByMap %}{{ requestType }}: objectReduceByMap({{ requestType }}, map){% else %}{{ requestType }}{% endif %},
+        {% else %}{% if nodegenRc.helpers.useObjectReduceByMap %}{{ requestType }}: objectReduceByMap({{ requestType }}, map{{ requestType }}){% else %}{{ requestType }}{% endif %},
         {% endif %}
       {%- endfor %}
       {% if baseUrl %}baseUrl: '{{ baseUrl }}',{% endif %}
