@@ -18,9 +18,13 @@ export default class {{ucFirst(operation_name)}}Service {
   public static {{ path.operationId }} ({{ pathParamsToDomainParams(method, path, true) }}): Promise<{{ path['x-response-definitions']['200'] if path['x-response-definitions']['200'] else 'void' }}>{
     {% if nodegenRc.helpers.useObjectReduceByMap %}
       {% for requestType, value in path['x-request-definitions'] -%}
-          const map{{ requestType }} = {{ _.trimEnd(paramsOutputReducer(swagger.definitions[value.name]), ',') }}
+        {% if requestType === 'body' %}
+          // {{ value.params[0].path}}
+          const map{{ requestType }} = {{ _.trimEnd(paramsOutputReducer(_.get(swagger, value.params[0].path)), ',') }}
+        {% endif %}
       {% endfor %}
     {% endif %}
+
     return HttpService.sendRequest({
       method: '{{ method | upper}}',
       path: {{ucFirst(operation_name)}}Service.basePath + '{{ urlPathJoin(op.path_name)}}',
