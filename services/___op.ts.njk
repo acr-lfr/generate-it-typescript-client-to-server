@@ -1,4 +1,4 @@
-import HttpService from '{{ httpServiceImport if httpServiceImport else "../lib/HttpService" }}';
+import HttpService from '{{ httpServiceImport if httpServiceImport else "please pass in the httpServiceImport variable to this tpl when using" }}';
 {% if nodegenRc.helpers.useObjectReduceByMap %}import objectReduceByMap from 'object-reduce-by-map';{% endif %}
 {% set interfaces = importInterfaces(operations) %}
 {% for interface in interfaces -%}
@@ -6,7 +6,7 @@ import { {{ interface }} } from './interfaces/{{ interface }}';
 {%- endfor %}
 
 export default class {{ucFirst(operation_name)}}Service {
-  public static basePath = '{{ basePath if basePath else "/" }}'
+  public static basePath = {{ basePath if basePath else "/" }}
 {% for op in operations -%}
   {% for method, path in op.path -%}
     {% if isValidMethod(method)%}
