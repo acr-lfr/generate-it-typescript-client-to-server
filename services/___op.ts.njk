@@ -35,7 +35,7 @@ export default class {{ucFirst(operation_name)}}Service {
         {% if requestType === 'path' %}params: pathParams,
         {% elif requestType === 'query' %}qs: {{ requestType }},
         {% elif requestType === 'formData' %}formData,
-        {% elif requestType === 'headers' %}headers: Object.assign(headers, additionalHeaders || {}),
+        {% elif requestType === 'headers' or requestType === 'header' %}headers: Object.assign(headers, additionalHeaders || {}),
         {% else %}{% if nodegenRc.helpers.useObjectReduceByMap %}{{ requestType }}: objectReduceByMap({{ requestType }}, map{{ requestType }}){% else %}{{ requestType }}{% endif %},
         {% endif %}
       {%- endfor %}
