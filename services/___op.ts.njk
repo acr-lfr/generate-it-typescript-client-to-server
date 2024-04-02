@@ -1,5 +1,8 @@
 import HttpService from '{{ httpServiceImport if httpServiceImport else "please pass in the httpServiceImport variable to this tpl when using" }}';
 {% if nodegenRc.helpers.useObjectReduceByMap %}import objectReduceByMap from 'object-reduce-by-map';{% endif %}
+{% if additionalImports %}{% for additionalImport in additionalImports -%}
+import {{ additionalImport.importName }} from '{{ additionalImport.importFrom }}';
+{%- endfor%}{% endif %}
 {% set interfaces = importInterfaces(operations) %}
 {% for interface in interfaces -%}
 import { {{ interface }} } from './interfaces/{{ interface }}';

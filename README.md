@@ -1,144 +1,56 @@
 # generate-it-typescript-client-to-server
 
-Generate-it typescript set of tpls for browser to client api client.
+Used in conjunction with generate-it to output api clients for server to server or browser to server.
 
-Uses Axios by default but you can drop in another http service file to replace axios:
+The template expects you to inject your own service called "HttpService" which it will then use to call your APIs.
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+Within the classes created, you set the url before the path to be called with {{basePath}} which if not set defaults to '/'.
 
-- [Default lib:](#default-lib)
-- [Overriding the default http lib:](#overriding-the-default-http-lib)
-- [Overriding the base path](#overriding-the-base-path)
-- [Injecting input santizing from object-reduce-by-map](#injecting-input-santizing-from-object-reduce-by-map)
-- [Example multiclient generation script](#example-multiclient-generation-script)
+If you need to import additional files to either get or calculate the basePath, you can do so with additionalImports injectable array of objects.
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+## Full example by js script:
 
-## Default lib:
-```
-  "scripts": {
-    "generate:client": "generate-it ../ms_item_d/build/ms-item-d_1.0.0.yml -t https://github.com/acrontum/generate-it-typescript-client-to-server.git"
-```
-The [default http lib](https://github.com/acrontum/generate-it-typescript-client-to-server/blob/master/lib/HttpService.ts.njk) uses axios and simply calls the API and returns the promise. This default http class will not get overwritten so making changes to this file is safe. If your app consumes many apis then you will likely want to use a shared lib opposed to repeating this one each time... see below.
+```js
 
-## Overriding the default http lib:
-```
-  "scripts": {
-    "generate:client": "generate-it ../ms_item_d/build/ms-item-d_1.0.0.yml -t https://github.com/acrontum/generate-it-typescript-client-to-server.git -$ httpServiceImport=@/services/HttpService"
-```
-The default lib could very likely be too simple for your application, or you maybe you don't want to use axios. Or, which is often the case, your frontend talks to many APIs so managing the http lib from a single files is much more convenient and reduces bloat.
+const apiNames = [
+  'apiAuth',
+  'apiNotifications'
+];
 
-Just add -$ httpServiceImport=<the project import> to replace the http service with your own version and then use whichever options you need, and override exceptions as you need. 
-
-## Overriding the base path
-By default the base path is '/'. This will likely be something else if you are using aws ingress routing for example.
-
-Override the base path example to the name of the microservice:
-```
-generate-it ../ms_item_d/build/ms-item-d_1.0.0.yml -t https://github.com/acrontum/generate-it-typescript-client-to-server.git -$ httpServiceImport=@/services/HttpService  -$ basePath=/ms-authentication/
-```
-
-## Injecting input santizing from object-reduce-by-map
-In the .nodegenrc you can instruct the services/___op.ts.njk to run all provided input through object-by-map.
-
-This is especially helpful for quickly building up admins allowing you to throw a full record of data at say a "PATCH" route where the API allows only accept specific attributes.
-
-Just mark useObjectReduceByMap to true, but when using this option it expects you to install "object-reduce-by-map" manually.:
-```
-{
-  "nodegenDir": "services",
-  "nodegenMockDir": "services/__mocks__",
-  "nodegenType": "client",
-  "helpers": {
-    "useObjectReduceByMap": false
-  }
-}
-```
-
-## Example multiclient generation script
-The script will build a series of API clients using these templates (defaulting to axios).
-
-The script will also depend on an npm package `command-line-args` to parse the cli arguments allowing to control which clients point to a specific URL and which default to the base url in the http service.
-
-For example:
-Prod build
-```
-node buildApi.js
-```
-Override the channel api url:
-```
-node buildApi.js --local ms-channel
-```
-
-the script:
-```javascript
-const config = [
-  {
-    from: '../../backend/ms_authentication_d/build/ms-authentication-d_1.0.1.yml',
-    to: 'src/api/ms-authentication'
-  },
-  {
-    from: '../../backend/ms_image_server_cache_d/build/ms_image_server_cache_d_1.0.0.yml',
-    to: 'src/api/ms-image-server-cache'
-  },
-  {
-    from: '../../backend/ms_item_d/build/ms-item-d_1.0.0.yml',
-    to: 'src/api/ms-item'
-  },
-  {
-    from: '../../backend/ms_channel_d/build/ms-channel-d_1.0.0.yml',
-    to: 'src/api/ms-channel',
-  },
-]
-
-const commandLineArgs = require('command-line-args')
-const options = commandLineArgs([{ name: 'local', type: String }])
-if (options.local) {
-  config.forEach((conf, i) => {
-    if (conf.to.includes(options.local)) {
-      config[i].variables = {
-        basePath: '/',
-        baseUrl: 'http://localhost:8000'
-      }
-    } else {
-      config[i].variables = {}
-    }
-  })
-}
-
-// eslint-disable-next-line no-undef
-const generateIt = require('generate-it/build/generateIt').default
-// eslint-disable-next-line no-undef
-require('colors')
+const generateIt = require('../node_modules/generate-it/build/generateIt').default;
 const generate = (configArray) => {
-  if (configArray.length === 0) {
-    console.log('','','Completed the generate of all apis.'.blue.bold)
-  } else {
-    const item = configArray.shift()
-    generateIt({
+  if (configArray.length > 0) {
+    const apiName = configArray.shift();
+    const config = {
+      swaggerFilePath: '../../' + apiName + '/swagger/build/api_spec.yml',
+      targetDir: './src/apis/' + apiName,
+      template: 'https://github.com/acr-lfr/generate-it-typescript-client-to-server.git',
+      // Inject dynamic content to the tpl here:
+      variables: {
+        additionalImports: [{
+          importName: 'config',
+          importFrom: '@/config'
+        }],
+        httpServiceImport: '@/services/HttpService',
+        basePath: `config.${apiName}`
+      },
       dontRunComparisonTool: false,
       dontUpdateTplCache: false,
       mockServer: false,
       segmentsCount: 1,
-      swaggerFilePath: item.from,
-      targetDir: item.to,
-      template: 'https://github.com/acrontum/generate-it-typescript-client-to-server.git',
-      variables: Object.assign({
-        httpServiceImport: '@/services/HttpService',
-        basePath: '/' + item.to.split('/').pop() + '/'
-      }, item.variables)
-    })
+    };
+    generateIt(config)
       .then(() => {
-        console.log(`API generated: ${item.to}`.blue.bold)
-        generate(configArray)
+        console.log(`API generated for: ${apiName}`);
+        generate(configArray);
       })
       .catch((e) => {
-        console.log('API generation error: ', e)
-      })
+        console.log('API generation error: ', e);
+      });
   }
-}
+};
 
-generate(config)
+generate(apiNames);
+
+
 ```
