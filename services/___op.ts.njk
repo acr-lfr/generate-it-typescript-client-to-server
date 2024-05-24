@@ -9,7 +9,7 @@ import { {{ interface }} } from './interfaces/{{ interface }}';
 {%- endfor %}
 
 export default class {{ucFirst(operation_name)}}Service {
-  public static basePath = {{ basePath if basePath else "/" }}
+  public static basePath = {{ basePath if basePath else "'/'" }}
 {% for op in operations -%}
   {% for method, path in op.path -%}
     {% if isValidMethod(method)%}
